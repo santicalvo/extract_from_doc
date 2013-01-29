@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*- 
 '''
 Created on 13/11/2012
 
@@ -18,8 +19,9 @@ class DocTextExtractor(object):
         self.word = win32com.client.Dispatch("Word.Application")
         self.word.Visible = visible
         self.doc = self.readDoc(path)
+        self.tables = []
 
-    
+
     def readDoc(self,path):
         try:
             return self.word.Documents.Open(path)
@@ -31,7 +33,16 @@ class DocTextExtractor(object):
     
     def readTables(self):
         for table in self.doc.Tables:
-            print type(table)
+            self.tables.append(table)
+        return self.tables
+
+    def getTableCells(self,table):
+        '''Por alguna extraña razón el COM lee las celdas comenzando por 1 en vez de por 0'''
+        rows = len(table.Rows)
+        cols = len(table.Columns)
+        cells = [[table.Cell(r+1, c+1) for c in range(cols)] for r in range(rows)]
+        return cells
+                
             
 
 if __name__ == '__main__':
