@@ -21,7 +21,6 @@ class DocTextExtractor(object):
         self.doc = self.readDoc(path)
         self.tables = []
 
-
     def readDoc(self,path):
         try:
             return self.word.Documents.Open(path)
@@ -30,7 +29,7 @@ class DocTextExtractor(object):
                 raise WordNotFoundException(ex[2][2])
             else:
                 raise ex
-    
+
     def readTables(self):
         for table in self.doc.Tables:
             self.tables.append(table)
@@ -41,9 +40,7 @@ class DocTextExtractor(object):
         rows = len(table.Rows)
         cols = len(table.Columns)
         cells = [[table.Cell(r+1, c+1) for c in range(cols)] for r in range(rows)]
-        return cells
-                
-            
+        return cells                     
 
 if __name__ == '__main__':
     pass

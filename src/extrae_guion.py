@@ -1,42 +1,64 @@
 # -*- coding: utf-8 -*- 
 import sys, os
+import xml.etree.ElementTree as xml
 import office.apps.extractor.doc_extractor as doc_extractor
 import guion_parser.guion_videos as parser
 
+class CursoSeatXml(object):
+    def __init__(self):
+        self.root = xml.Element("paginas")
+        
+    def addPagina(self, num_pagina, texto):
+        pagina = xml.Element("pagina")
+        pagina.attrib["num"] = num_pagina
+        nodo_texto = xml.SubElement(pagina, "texto")
+        nodo_texto.text = texto
+        self.root.append(pagina)
+        
+    def save(self,path):
+        return False
+        try:
+            fil = open(path, "w")
+            fil.write( '<?xml version="1.0"?>' )
+            fil.write( xml.tostring(self.root, "utf-8") )
+            fil.close()
+            #print xml.tostring(self.root)
+        except Exception as ex:
+            print path, ex
 
+def DocAxml(caps):
+    for cap in caps:
+        paginas = caps[cap]
+        curso_xml = CursoSeatXml()
+        for pagina in paginas:
+            num_pagina = pagina["np"]
+            texto = pagina["txt"]
+            #print num_pagina, texto
+            curso_xml.addPagina(num_pagina, texto)
+        path = "../files/xml/"+cap+".xml"
+        curso_xml.save(path)
 
-def tablasDocAxml(tables):
-    for table in tables:
-        print table
-
-def parseTables(extractor):
-    tables = extractor.readTables()
-    lector = parser.LectorGuionVideos()
-    pantallas = []
-    for table in tables:
-        cells = extractor.getTableCells(table)
-        #lector.print_table(cells)
-        pantallas.append( lector.parse_table_data(cells) )
-    return pantallas
 
 
 if __name__ == '__main__':
     path = os.path.join(os.getcwd(),"../files/guion_video_carroceria.docx")
     #path = os.path.join(os.getcwd(),"../files/tests1.docx")
     try:
-        extractor = doc_extractor.DocTextExtractor(path)
-        tablas = parseTables(extractor)
-        #pantallas = (pantallas)
+        lector =  parser.LectorGuionVideos(path)
+        caps = lector.separaCapitulos()
+        DocAxml( caps )
+#        for key in caps:
+#            print caps[key]
+#            print "--- ini key %s ---" % key
+#            for item in caps[key]:
+#                print item
+#            print "--- end key %s ---" % key
+        #pantallas = lector.parseTables()
+        #tablasDocAxml(pantallas)
     except doc_extractor.WordNotFoundException as docNotFound:
         print "file not found: ", docNotFound
 #       except Exception as ex:
 #       raise ex
-        
-
-
-
-
-
 
 
 

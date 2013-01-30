@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 import re
-import xml.etree.ElementTree as xml
+import office.apps.extractor.doc_extractor as doc_extractor
 '''
 
 Aqui guardaremos diferentes funciones que permitan parsear cada tipo de documento en concreto
@@ -11,27 +11,21 @@ Cada guión es distinto. No consigo desgranar una forma que me permita parsear t
 de tablas que nos envíen. Esto no sirve para ser reusado, sólo como script rápido para generar los 
 documentos
 '''
-class DocToXml(object):
-    def __init__(self):
-        self.root = xml.Element("paginas")
+class ParserError(Exception):
+    def __init__(self, error):
+        self.error = error
+    def __str__(self):
+        return repr(self.error)
         
-    def addPagina(self, num_pagina):
-        pagina = xml.Element("pagina")
-        pagina.attrib["num"] = num_pagina
-        self.root.append(pagina)
-        
-    def save(self,nom):
-        nom = nom+".xml"
-        file.open(nom, "w")
-        xml.ElementTree.write(file)
-        file.close()
-        
-    
+  
     
 class LectorGuionVideos(object):
-    def __init__(self):
+    def __init__(self, path, nombre_xml="curso"):
+        self.extractor = doc_extractor.DocTextExtractor(path)
         self.re_pantalla = re.compile("(.*)([0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2})(.*)")
         self.re_indice = re.compile(".*ndice.*")
+        self.nombre_xml = nombre_xml
+        self.capitulos = []
         
     def __detect_pantalla(self, txt):
         pantalla = re.match(self.re_pantalla, txt)
@@ -42,7 +36,50 @@ class LectorGuionVideos(object):
             return "indice"
         return False
     
-    def parse_table_data(self,table):
+    def __num_indice(self, nums):
+        return "indice"
+    
+    def __numera_pantallas(self, nums):
+        if nums[0] == "indice":
+            return {
+                    "curso": self.nombre_xml+"0", 
+                    "num_pantalla": self.__num_indice(nums)
+                    }
+        try:
+            capitulo = "0" + nums[0] if int(nums[0]) < 10 else nums[0]
+            tema = "0" + nums[1] if int(nums[1]) < 10 else nums[1]
+            pantalla = "0" + nums[2] if int(nums[2]) < 10 else nums[2]
+            return {
+                    "curso": self.nombre_xml+nums[0],
+                    "num_pantalla": capitulo+"_"+tema+"_"+pantalla
+                    }
+        except:
+            raise ParserError( "Imposible numerar las pantallas. Error de entrada de datos .%s"% nums)
+    
+    def separaCapitulos(self):
+        pantallas = self.parseTables()
+        capitulos = {}
+        for pantalla in pantallas:
+            numeracion_pantalla = self.__numera_pantallas( pantalla["num"].split(".") )
+            try:
+                nomfile = numeracion_pantalla["curso"]
+                if nomfile not in capitulos.keys():
+                    capitulos[nomfile] = []
+                capitulos[nomfile].append({"np": numeracion_pantalla["num_pantalla"],
+                                           "txt":pantalla["txt"]})
+            except Exception as ex:
+                raise ParserError( "Imposible separar los capitulos .%s" % ex)
+        return capitulos       
+    
+    def parseTables(self):
+        tables = self.extractor.readTables()
+        pantallas = []
+        for table in tables:
+            cells = self.extractor.getTableCells(table)
+            pantallas.append( self.__parse_table_data(cells) )
+        return pantallas
+    
+    def __parse_table_data(self,table):
         i = j = 0
         if len(table) > 1:
             fila = 1
