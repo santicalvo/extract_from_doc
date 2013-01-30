@@ -1,43 +1,36 @@
 # -*- coding: utf-8 -*- 
 import sys, os
 import office.apps.extractor.doc_extractor as doc_extractor
+import guion_parser.guion_videos as parser
 
-extractor = None
 
-def parseTables():
+
+def tablasDocAxml(tables):
+    for table in tables:
+        print table
+
+def parseTables(extractor):
     tables = extractor.readTables()
+    lector = parser.LectorGuionVideos()
+    pantallas = []
     for table in tables:
         cells = extractor.getTableCells(table)
-        i = j = 0
-        for rows in cells:
-            for cell in rows:
-                print i, j, cell.Range.Text[:-1]
-                j+=1
-            j=0
-            i+=1
-        print "---- fin table -----"
-        #if table.Cell(1,0).Range.Text[:8] == "Pantalla":
-#        if len(table.Rows) == 1 and len(table.Columns) == 2:
-#            print "->",table.Cell(1, 1).Range.Text
-#            print "-->",table.Cell(1, 2).Range.Text
-#            print "-------------1 2----------------"
-#        if len(table.Rows) == 2 and len(table.Columns) == 2:
-#            print "--->",table.Cell(1, 1).Range.Text
-#            print "---->",table.Cell(1, 2).Range.Text
-#            print "----->",table.Cell(2, 1).Range.Text
-#            print "------>",table.Cell(2, 2).Range.Text
-#            print "--------------2 2---------------"
+        #lector.print_table(cells)
+        pantallas.append( lector.parse_table_data(cells) )
+    return pantallas
+
 
 if __name__ == '__main__':
     path = os.path.join(os.getcwd(),"../files/guion_video_carroceria.docx")
     #path = os.path.join(os.getcwd(),"../files/tests1.docx")
     try:
         extractor = doc_extractor.DocTextExtractor(path)
-        parseTables()
+        tablas = parseTables(extractor)
+        #pantallas = (pantallas)
     except doc_extractor.WordNotFoundException as docNotFound:
         print "file not found: ", docNotFound
-#    except Exception as ex:
-#        raise ex
+#       except Exception as ex:
+#       raise ex
         
 
 
