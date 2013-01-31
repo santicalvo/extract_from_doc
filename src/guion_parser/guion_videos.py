@@ -66,7 +66,8 @@ class LectorGuionVideos(object):
                 if nomfile not in capitulos.keys():
                     capitulos[nomfile] = []
                 capitulos[nomfile].append({"np": numeracion_pantalla["num_pantalla"],
-                                           "txt":pantalla["txt"]})
+                                           "txt": pantalla["txt"],
+                                           "titul": pantalla["titul"]})
             except Exception as ex:
                 raise ParserError( "Imposible separar los capitulos .%s" % ex)
         return capitulos       
@@ -83,15 +84,19 @@ class LectorGuionVideos(object):
         i = j = 0
         if len(table) > 1:
             fila = 1
+            titulo = table[0][1].Range.Text[:-1]
         elif len(table) == 1:
             fila = 0
+            titulo = ""
         columna = 0
-        match = self.__detect_pantalla(table[fila][columna].Range.Text[:-1])
+        match = self.__detect_pantalla(table[fila][columna].Range.Text)
+        #match = self.__detect_pantalla(table[fila][columna].Range.Text[:-1])
         if match:
             txt = table[fila][columna+1].Range.Text[:-1]
         return {
               "num": match,
-              "txt":txt
+              "txt": txt,
+              "titul": titulo
             }
         
     def print_table(self,table):
