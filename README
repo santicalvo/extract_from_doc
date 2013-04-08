@@ -1,0 +1,6 @@
+Son necesarias las librerías win32com y trabajar en windows.
+snif... snif...
+
+Extraemos los textos de los .docx con un formato determinado y los trasladamos a un xml.
+Esto es para uso personal, dudo que le sirva a nadie más. 
+
