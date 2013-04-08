@@ -1,86 +1,12 @@
 # -*- coding: utf-8 -*- 
 import sys, os
 import string
-import xml.dom.minidom as minidom
-import xml.etree.ElementTree as xml
 import office.apps.extractor.doc_extractor as doc_extractor
-import guion_parser.guion_videos as parser
+#import guion_parser.guion_videos as parser
+from curso_toxml.xmlcreator import *
+#from guion_parser.guion_videos_chapisteria import *
+from guion_parser import *
 
-class CursoSeatXmlMinidom(object):
-    def __init__(self):
-        self.doc = minidom.Document()
-        self.root = self.doc.createElement("paginas")
-        self.doc.appendChild(self.root)
-    
-    def limpia_saltos(self,texto):
-        if texto.find("\n") != -1 or texto.find("\r") != -1:
-            texto = texto.replace("\n", "<br />")
-            texto = texto.replace("\r", "<br />")
-            txt = self.doc.createCDATASection(texto)
-        else:
-            txt = self.doc.createTextNode(texto) 
-        return txt
-    
-    def addPagina(self, num_pagina, texto, titulo=""):
-        pagina = self.doc.createElement("pagina")
-        pagina.setAttribute("num", num_pagina)
-        nodo_texto = self.doc.createElement("texto")
-        ptext = self.limpia_saltos(texto)
-        nodo_texto.appendChild(ptext)
-        if titulo !="" and titulo != " ":
-            tit = self.doc.createElement("titulo")
-            ttext = self.doc.createTextNode(titulo)
-            tit.appendChild(ttext)
-            pagina.appendChild(tit)
-        pagina.appendChild(nodo_texto)
-        self.root.appendChild(pagina)
-        
-    def save(self,path, notyet=False):
-        if notyet:
-            return False
-        try:
-            xmlstr = self.doc.toxml("utf-8")
-            f=open(path, "w")
-            f.write(xmlstr)
-            f.close()
-        except Exception as ex:
-            print path, ex
-
-class CursoSeatXmlEtree(object):
-    def __init__(self):
-        self.root = xml.Element("paginas")
-    
-    def limpia_saltos(self,texto):
-        #texto = "<br />".join(texto.split("\n"))
-        #texto = "<br />".join(texto.split("\r"))
-        #Limpiamos un extraño carácter que nos sale al adquirir el texto del word
-        #texto = filter(lambda x: x in string.printable, texto)
-        texto = texto.replace("\n", "<br />")
-        texto = texto.replace("\r", "<br />")
-        return texto.encode("utf-8")
-    
-    def addPagina(self, num_pagina, texto, titulo=""):
-        pagina = xml.Element("pagina")
-        pagina.attrib["num"] = num_pagina
-        nodo_texto = xml.SubElement(pagina, "texto")
-        nodo_texto.text = self.limpia_saltos(texto)
-        if titulo !="" and titulo != " ":
-            tit = xml.SubElement(pagina, "titulo")
-            tit.text = titulo
-        self.root.append(pagina)
-        
-    def save(self,path, notyet=False):
-        if notyet:
-            return False
-        try:
-            fil = open(path, "w")
-            fil.write( '<?xml version="1.0"?>' )
-            print xml.tostring(self.root)
-            fil.write( xml.tostring(self.root, "utf-8") )
-            fil.close()
-            #print xml.tostring(self.root)
-        except Exception as ex:
-            print path, ex
 
 def DocAxml(caps):
     for cap in caps:
@@ -97,20 +23,34 @@ def DocAxml(caps):
         path = "../files/xml/"+cap+".xml"
         curso_xml.save(path)
 
+#modificar con cada nuevo curso
+def getParser(path):
+    return guion_videos_chapisteria.LectorGuionChapisteria(path)
+
 
 
 if __name__ == '__main__':
-    path = os.path.join(os.getcwd(),"../files/guion_video_carroceria.docx")
+    path = os.path.join(os.getcwd(),"../files/guion_video_chapisteria1.docx")
     #path = os.path.join(os.getcwd(),"../files/tests1.docx")
     try:
-        lector =  parser.LectorGuionVideos(path)
-        caps = lector.separaCapitulos()
-        DocAxml( caps )
+        parser = getParser(path)
+        #lector = parser( path )
+        caps = parser.separaCapitulos()
+        print caps
+        #DocAxml( caps )
+        #print caps
+        #lector =  parser.LectorGuionVideos(path)
+        #lector =  parser.LectorGuionChapisteria(path)
+        #caps = lector.separaCapitulos()
+        #print caps
+        #DocAxml( caps )
 
     except doc_extractor.WordNotFoundException as docNotFound:
         print "file not found: ", docNotFound
 #       except Exception as ex:
 #       raise ex
+#    except parser.ParserError as parseError:
+#        print parseError
 
 
 

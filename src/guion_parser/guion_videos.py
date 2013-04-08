@@ -27,7 +27,8 @@ class LectorGuionVideos(object):
         self.nombre_xml = nombre_xml
         self.capitulos = []
         
-    def __detect_pantalla(self, txt):
+        
+    def detect_pantalla(self, txt):
         pantalla = re.match(self.re_pantalla, txt)
         if pantalla:
             return pantalla.group(2)
@@ -39,7 +40,10 @@ class LectorGuionVideos(object):
     def __num_indice(self, nums):
         return "indice"
     
-    def __numera_pantallas(self, nums):
+    def __num_alt(self, nums):
+        return self.alt_text
+    
+    def numera_pantalla(self, nums):
         if nums[0] == "indice":
             return {
                     "curso": self.nombre_xml+"0", 
@@ -60,7 +64,8 @@ class LectorGuionVideos(object):
         pantallas = self.parseTables()
         capitulos = {}
         for pantalla in pantallas:
-            numeracion_pantalla = self.__numera_pantallas( pantalla["num"].split(".") )
+            if pantalla["num"] is not False:
+                numeracion_pantalla = self.numera_pantalla( pantalla["num"].split(".") )
             try:
                 nomfile = numeracion_pantalla["curso"]
                 if nomfile not in capitulos.keys():
@@ -77,11 +82,12 @@ class LectorGuionVideos(object):
         pantallas = []
         for table in tables:
             cells = self.extractor.getTableCells(table)
-            pantallas.append( self.__parse_table_data(cells) )
+            pantallas.append( self.parse_table_data(cells) )
         return pantallas
     
-    def __parse_table_data(self,table):
+    def parse_table_data(self,table):
         i = j = 0
+        txt = ""
         if len(table) > 1:
             fila = 1
             titulo = table[0][1].Range.Text[:-1]
@@ -89,10 +95,11 @@ class LectorGuionVideos(object):
             fila = 0
             titulo = ""
         columna = 0
-        match = self.__detect_pantalla(table[fila][columna].Range.Text)
-        #match = self.__detect_pantalla(table[fila][columna].Range.Text[:-1])
+        match = self.detect_pantalla(table[fila][columna].Range.Text)
+        #match = self.detect_pantalla(table[fila][columna].Range.Text[:-1])
         if match:
             txt = table[fila][columna+1].Range.Text[:-1]
+       
         return {
               "num": match,
               "txt": txt,
@@ -108,3 +115,4 @@ class LectorGuionVideos(object):
             j=0
             i+=1
         print "---- fin table -----"
+        
