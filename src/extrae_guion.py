@@ -30,13 +30,14 @@ def getParser(path):
 
 
 if __name__ == '__main__':
-    path = os.path.join(os.getcwd(),"../files/guion_video_chapisteria1.docx")
+    path = os.path.join(os.getcwd(),"../files/guion_video_chapisteria.docx")
     #path = os.path.join(os.getcwd(),"../files/tests1.docx")
     try:
         parser = getParser(path)
+        parser.doc_to_xmls( xml_path="../files/xml/" )
         #lector = parser( path )
-        caps = parser.separaCapitulos()
-        print caps
+        #caps = parser.separaCapitulos()
+        #print caps
         #DocAxml( caps )
         #print caps
         #lector =  parser.LectorGuionVideos(path)

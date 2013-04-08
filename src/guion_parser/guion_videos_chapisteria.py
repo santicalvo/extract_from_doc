@@ -1,6 +1,11 @@
 # -*- coding:utf-8 -*-
 import re
 import guion_videos
+from curso_toxml.xmlcreator import CursoSeatXmlMinidom
+#CursoSeatXmlMinidom = 
+
+#TODO: ARREGLAR MÉTODOS!!!!!
+
 
 ParserError = guion_videos.ParserError
 
@@ -34,7 +39,6 @@ class LectorGuionChapisteria(guion_videos.LectorGuionVideos):
             titulo = ""
             obser = ""
         columna = 0
-        print table[fila][columna].Range.Text, obser
         match = self.detect_pantalla(table[fila][columna].Range.Text)
         #match = self.detect_pantalla(table[fila][columna].Range.Text[:-1])
         if match:
@@ -42,29 +46,29 @@ class LectorGuionChapisteria(guion_videos.LectorGuionVideos):
        
         return {
               "num": match,
-              "txt": txt,
-              "titul": titulo,
-              "obser": obser
+              "audio": txt,
+              "Titulo1": titulo,
+              "observacion": obser
             }
+    def get_creador_xml(self):
+        return CursoSeatXmlMinidomChapisteria()
+
         
-    def numera_pantalla(self, nums):
-        if nums[0] == "indice":
-            return {
-                    "curso": self.nombre_xml+"0", 
-                    "num_pantalla": self.__num_indice(nums)
-                    }
-        if nums[0] == "alternative_regex":
-            return {
-                    "curso": self.nombre_xml+"0", 
-                    "num_pantalla": self.__num_indice(nums)
-                    }
-        try:
-            capitulo = "0" + nums[0] if int(nums[0]) < 10 else nums[0]
-            tema = "0" + nums[1] if int(nums[1]) < 10 else nums[1]
-            pantalla = "0" + nums[2] if int(nums[2]) < 10 else nums[2]
-            return {
-                    "curso": self.nombre_xml+nums[0],
-                    "num_pantalla": capitulo+"_"+tema+"_"+pantalla
-                    }
-        except:
-            raise ParserError( "Imposible numerar las pantallas. Error de entrada de datos .%s"% nums)
+#Escribimos xml
+class CursoSeatXmlMinidomChapisteria(CursoSeatXmlMinidom):
+    def addPantalla(self, tag="pagina", num_pagina=""):
+        pagina = self.doc.createElement(tag)
+        if num_pagina != "":
+            pagina.setAttribute("num", num_pagina)
+        return pagina
+        
+    def addNodo(self, nom, texto):
+        if texto != "":
+            nodo_texto = self.doc.createElement(nom)
+            ptext = self.limpia_saltos(texto) 
+            nodo_texto.appendChild(ptext)
+            return nodo_texto
+        return None
+
+    
+    

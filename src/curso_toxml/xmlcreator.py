@@ -47,10 +47,6 @@ class CursoSeatXmlEtree(object):
         self.root = xml.Element("paginas")
     
     def limpia_saltos(self,texto):
-        #texto = "<br />".join(texto.split("\n"))
-        #texto = "<br />".join(texto.split("\r"))
-        #Limpiamos un extraño carácter que nos sale al adquirir el texto del word
-        #texto = filter(lambda x: x in string.printable, texto)
         texto = texto.replace("\n", "<br />")
         texto = texto.replace("\r", "<br />")
         return texto.encode("utf-8")
